@@ -37,10 +37,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener()
+        {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
+            public void onClick(View view)
+            {
+                Snackbar.make(view, "Adding a Friend", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });

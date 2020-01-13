@@ -17,14 +17,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
             <ImageView
-                android:id="@+id/crime_photo"
+                android:id="@+id/friend_photo"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:scaleType="center"
                 android:cropToPadding="true"
                 android:background="@android:color/darker_gray"/>
             <ImageButton
-                android:id="@+id/crime_camera"
+                android:id="@+id/friend_camera"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_menu_camera"/>
@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/friend_name_label"/>
             <EditText
-                android:id="@+id/crime_title"
+                android:id="@+id/friend_title"
                 android:hint="@string/friend_name_hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
@@ -55,12 +55,12 @@
         android:text="@string/friend_details_label"
         />
     <Button
-        android:id="@+id/crime_date"
+        android:id="@+id/friend_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#87c0f1"/>
     <CheckBox
-        android:id="@+id/crime_solved"
+        android:id="@+id/friend_solved"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/friend_fed_label"/>
@@ -72,7 +72,7 @@
         android:fadingEdge="horizontal|vertical"
         android:text="@string/friend_contact_text" />
     <Button
-        android:id="@+id/crime_report"
+        android:id="@+id/friend_report"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fadingEdge="horizontal|vertical"
