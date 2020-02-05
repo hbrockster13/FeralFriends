@@ -60,7 +60,7 @@
         android:layout_height="wrap_content"
         android:background="#87c0f1"/>
     <CheckBox
-        android:id="@+id/friend_solved"
+        android:id="@+id/friend_fed"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/friend_fed_label"/>
@@ -84,6 +84,12 @@
         android:background="#87f2b0"
         android:fadingEdge="horizontal|vertical"
         android:text="@string/save_friend_text" />
-
+    <Button
+        android:id="@+id/delete_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#87f2b0"
+        android:fadingEdge="horizontal|vertical"
+        android:text="@string/delete_friend" />
 
 </LinearLayout>

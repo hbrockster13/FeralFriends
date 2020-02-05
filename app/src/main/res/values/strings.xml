@@ -19,7 +19,7 @@
     <string name="friend_report_contact">The contact is %s</string>
     <string name="friend_report_subject">Feral Friend Report</string>
     <string name="send_report">Send Report</string>
-    <string name="delete_friend"></string>
+    <string name="delete_friend">Delete</string>
     <string name="title_activity_maps">Map</string>
     <string name="submit">Map</string>
 </resources>

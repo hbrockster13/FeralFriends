@@ -76,14 +76,15 @@ public class FriendFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                FragmentManager fragmentManager = getFragmentManager();
-                DatePickerFragment dialog = DatePickerFragment.newInstance(mCrime.getmDate());
-                dialog.setTargetFragment(FriendFragment.this, REQUEST_DATE);
-                dialog.show(fragmentManager, DIALOG_DATE);
+                //FragmentManager fragmentManager = getFragmentManager();
+               // DatePickerFragment dialog = DatePickerFragment.newInstance(mCrime.getmDate());
+                //dialog.setTargetFragment(FriendFragment.this, REQUEST_DATE);
+                //dialog.show(fragmentManager, DIALOG_DATE);onClick
+                Toast.makeText(getContext(), "onCheckedChanged()", Toast.LENGTH_SHORT);
             }
         });
 
-        mFedCheckBox = v.findViewById(R.id.crime_solved);
+        mFedCheckBox = v.findViewById(R.id.friend_fed);
         //mFedCheckBox.setChecked(mCrime.ismSolved());
         mFedCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {
@@ -95,7 +96,7 @@ public class FriendFragment extends Fragment
             }
         });
 
-        mDeleteButton = v.findViewById(R.id.delete_friend);
+        mDeleteButton = v.findViewById(R.id.delete_button);
         mDeleteButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -121,6 +122,6 @@ public class FriendFragment extends Fragment
 
     private void updateDate()
     {
-        mDateButton.setText(mCrime.getmDate().toString());
+        //mDateButton.setText(mCrime.getmDate().toString());
     }
 }
