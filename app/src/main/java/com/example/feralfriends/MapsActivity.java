@@ -8,10 +8,14 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+import com.example.feralfriends.Database.DatabaseAccess;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,6 +30,8 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener
 {
@@ -57,7 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view)
             {
-                Snackbar.make(view, "Adding a Friend", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Adding a FeralFriend", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
                 Task<Location> task = fusedLocationProviderClient.getLastLocation();
@@ -76,12 +82,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         LatLng cur = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
                         Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Current Local"));
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
+
+                        //Add marker to database
+                        Document document = new Document();
+                        document.put("Lat", cur.latitude);
+                        document.put("Lng", cur.longitude);
+
+                        CreateItemAsyncTask task = new CreateItemAsyncTask();
+                        task.execute(document);
                     }
                 });
             }
         });
 
-        //Initialize the LocationManager for changes
+        //Initialize the LocationManager for changes in location
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         try
@@ -107,7 +121,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap)
     {
         mMap = googleMap;
+
+        //Get user's marker from the database
+        LookupItemAsyncTask task = new LookupItemAsyncTask();
+
+        try
+        {
+            LatLng position = task.execute().get();
+
+            if(position == null)
+            {
+                return;
+            }
+
+            //Add the existing marker
+            mMap.addMarker(new MarkerOptions().position(position));
+        }
+        catch(InterruptedException ie)
+        {
+            Log.e(TAG, ie.getMessage());
+        }
+        catch(ExecutionException ee)
+        {
+            Log.e(TAG, ee.getMessage());
+        }
     }
+
     private void getLocationPermission()
     {
         /*
@@ -134,7 +173,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         LatLng curPosition = new LatLng(location.getLatitude(), location.getLongitude());
 
-        mMap.addMarker(new MarkerOptions().position(curPosition).title("Current position!"));
+        //mMap.addMarker(new MarkerOptions().position(curPosition).title("Current position!"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(curPosition));
 
         CameraPosition cameraPosition = new CameraPosition.Builder().target(curPosition).zoom(15).bearing(0).build();
@@ -149,4 +188,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onProviderDisabled(String provider) {}
+
+    private class CreateItemAsyncTask extends AsyncTask<Document, Void, Void>
+    {
+        @Override
+        protected Void doInBackground(Document... documents)
+        {
+            DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
+            databaseAccess.create(documents[0]);
+
+            Log.i(TAG, "Insert document into table");
+
+            return null;
+        }
+    }
+
+    private class LookupItemAsyncTask extends AsyncTask<Void, Void, LatLng>
+    {
+        @Override
+        protected LatLng doInBackground(Void... Voids)
+        {
+            DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
+            Document document = databaseAccess.lookup();
+
+            if(document == null)
+            {
+                return null;
+            }
+
+            double lat = document.get("Lat").asDouble();
+            double lng = document.get("Lng").asDouble();
+
+            Log.i(TAG, "Lat: " + lat);
+            Log.i(TAG, "Lng: " + lng);
+
+            return new LatLng(lat, lng);
+        }
+    }
 }

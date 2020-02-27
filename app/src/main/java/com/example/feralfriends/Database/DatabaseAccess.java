@@ -5,13 +5,13 @@ import android.util.Log;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.Table;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Primitive;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 
 public class DatabaseAccess
 {
-    private static final String TAG = "DatabaseAccess";
     private final String DYNAMODB_TABLE = "Markers";
     private final String COGNITO_IDENTITY_POOL_ID = "us-east-2:005b7c74-a373-4a55-8a47-04f044e1a061";
     private final Regions COGNITO_IDENTITY_POOL_REGION = Regions.US_EAST_2;
@@ -21,6 +21,8 @@ public class DatabaseAccess
     private CognitoCachingCredentialsProvider credentialsProvider;
 
     private static volatile DatabaseAccess instance;
+
+    private static final String TAG = "DatabaseAccess";
 
     private DatabaseAccess(Context context)
     {
@@ -48,5 +50,12 @@ public class DatabaseAccess
         Log.i(TAG, document.get("UserId").toString());
 
         table.putItem(document);
+    }
+
+    public Document lookup()
+    {
+        Document document = table.getItem(new Primitive(credentialsProvider.getCachedIdentityId()));
+
+        return document;
     }
 }
