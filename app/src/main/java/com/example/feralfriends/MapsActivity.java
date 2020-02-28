@@ -30,7 +30,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.maps.android.SphericalUtil;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener
@@ -80,13 +83,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 ,Toast.LENGTH_SHORT).show();
 
                         LatLng cur = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-                        Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Current Local"));
+                        Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Marker Title"));
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
 
                         //Add marker to database
                         Document document = new Document();
+                        document.put("MarkerId", marker.getId());
                         document.put("Lat", cur.latitude);
                         document.put("Lng", cur.longitude);
+                        document.put("Title", marker.getTitle());
 
                         CreateItemAsyncTask task = new CreateItemAsyncTask();
                         task.execute(document);
@@ -127,15 +132,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         try
         {
-            LatLng position = task.execute().get();
+            ArrayList<Document> documents = task.execute().get();
 
-            if(position == null)
+            if(documents == null)
             {
                 return;
             }
 
-            //Add the existing marker
-            mMap.addMarker(new MarkerOptions().position(position));
+            for(Document document : documents)
+            {
+                double lat = Double.parseDouble(document.get("Lat").asPrimitive().getValue().toString());
+                double lng = Double.parseDouble(document.get("Lng").asPrimitive().getValue().toString());
+
+                LatLng curPosition = new LatLng(lat, lng);
+
+                //Add the existing marker
+                mMap.addMarker(new MarkerOptions().position(curPosition).title(document.get("Title").asString()));
+            }
         }
         catch(InterruptedException ie)
         {
@@ -173,6 +186,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         LatLng curPosition = new LatLng(location.getLatitude(), location.getLongitude());
 
+        mLocation = location;
+
         //mMap.addMarker(new MarkerOptions().position(curPosition).title("Current position!"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(curPosition));
 
@@ -203,26 +218,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private class LookupItemAsyncTask extends AsyncTask<Void, Void, LatLng>
+    private class LookupItemAsyncTask extends AsyncTask<Void, Void, ArrayList<Document>>
     {
         @Override
-        protected LatLng doInBackground(Void... Voids)
+        protected ArrayList<Document> doInBackground(Void... Voids)
         {
             DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
-            Document document = databaseAccess.lookup();
+            ArrayList<Document> documents = databaseAccess.lookup();
 
-            if(document == null)
+            if(documents.isEmpty())
             {
                 return null;
             }
 
-            double lat = document.get("Lat").asDouble();
-            double lng = document.get("Lng").asDouble();
+            Log.i(TAG, "Retrieved documents from database.");
 
-            Log.i(TAG, "Lat: " + lat);
-            Log.i(TAG, "Lng: " + lng);
-
-            return new LatLng(lat, lng);
+            return documents;
         }
     }
 }

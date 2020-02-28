@@ -9,6 +9,12 @@ import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Primitive;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 public class DatabaseAccess
 {
@@ -52,10 +58,24 @@ public class DatabaseAccess
         table.putItem(document);
     }
 
-    public Document lookup()
+    public ArrayList<Document> lookup()
     {
-        Document document = table.getItem(new Primitive(credentialsProvider.getCachedIdentityId()));
+        ArrayList<Document> documents = new ArrayList<Document>();
+        ScanRequest scanRequest = new ScanRequest().withTableName(DYNAMODB_TABLE);
+        ScanResult scanResult = client.scan(scanRequest);
 
-        return document;
+        for(Map<String, AttributeValue> item : scanResult.getItems())
+        {
+            Document document = new Document();
+            document.put("UserId", item.get("UserId").getS());
+            document.put("MarkerId", item.get("MarkerId").getS());
+            document.put("Lat", item.get("Lat").getN());
+            document.put("Lng", item.get("Lng").getN());
+            document.put("Title", item.get("Title").getS());
+
+            documents.add(document);
+        }
+
+        return documents;
     }
 }
