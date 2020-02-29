@@ -58,6 +58,7 @@
         android:id="@+id/crime_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:text="Date"
         android:background="#87c0f1"/>
     <CheckBox
         android:id="@+id/crime_solved"
