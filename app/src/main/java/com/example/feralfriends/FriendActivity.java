@@ -25,7 +25,7 @@ public class FriendActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_friend);
 
-        testButton = (Button) findViewById(R.id.test_button);
+        testButton = (Button) findViewById(R.id.login_button);
         testButton.setOnClickListener(new View.OnClickListener()
         {
             @Override

@@ -130,14 +130,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Get user's marker from the database
         LookupItemAsyncTask task = new LookupItemAsyncTask();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener()
-=======
         try
->>>>>>> Tyler-Test
         {
             ArrayList<Document> documents = task.execute().get();
 
@@ -186,7 +179,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
->>>>>>> abd7cf6e3a11c63bc6e7eaa9675445f8ef7b156d
     }
 
     @Override
