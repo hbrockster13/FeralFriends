@@ -3,15 +3,21 @@ package com.example.feralfriends;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.feralfriends.Database.DatabaseAccess;
+import com.google.android.gms.maps.model.LatLng;
+
 public class FriendActivity extends AppCompatActivity
 {
-
     Button testButton;
+
+    private static final String TAG = "FriendActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)

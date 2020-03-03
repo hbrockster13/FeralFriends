@@ -1,33 +1,42 @@
 package com.example.feralfriends;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+import com.example.feralfriends.Database.DatabaseAccess;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.maps.android.SphericalUtil;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener
 {
 
     private GoogleMap mMap;
@@ -35,6 +44,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location mLocation;
+    private LocationManager locationManager;
+
+    private static final String TAG = "MapsActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -54,7 +66,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view)
             {
-                Snackbar.make(view, "Adding a Friend", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Adding a FeralFriend", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
                 Task<Location> task = fusedLocationProviderClient.getLastLocation();
@@ -71,14 +83,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 ,Toast.LENGTH_SHORT).show();
 
                         LatLng cur = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-                        Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Current Local"));
+                        Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Marker Title"));
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
+
+                        //Add marker to database
+                        Document document = new Document();
+                        document.put("MarkerId", marker.getId());
+                        document.put("Lat", cur.latitude);
+                        document.put("Lng", cur.longitude);
+                        document.put("Title", marker.getTitle());
+
+                        CreateItemAsyncTask task = new CreateItemAsyncTask();
+                        task.execute(document);
                     }
                 });
             }
         });
 
+        //Initialize the LocationManager for changes in location
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        try
+        {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, this);
+        }
+        catch(SecurityException se)
+        {
+            Log.e(TAG, se.getMessage());
+        }
     }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -93,26 +127,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        Marker marker = mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        //Get user's marker from the database
+        LookupItemAsyncTask task = new LookupItemAsyncTask();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 =======
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener()
+=======
+        try
+>>>>>>> Tyler-Test
         {
-            @Override
-            public boolean onMarkerClick(Marker marker)
+            ArrayList<Document> documents = task.execute().get();
+
+            if(documents == null)
             {
-                Toast.makeText(getApplicationContext(),"Marker Selected",Toast.LENGTH_SHORT).show();
-                return false;
+                return;
             }
-        });
 
+            for(Document document : documents)
+            {
+                double lat = Double.parseDouble(document.get("Lat").asPrimitive().getValue().toString());
+                double lng = Double.parseDouble(document.get("Lng").asPrimitive().getValue().toString());
 
+                LatLng curPosition = new LatLng(lat, lng);
+
+                //Add the existing marker
+                mMap.addMarker(new MarkerOptions().position(curPosition).title(document.get("Title").asString()));
+            }
+        }
+        catch(InterruptedException ie)
+        {
+            Log.e(TAG, ie.getMessage());
+        }
+        catch(ExecutionException ee)
+        {
+            Log.e(TAG, ee.getMessage());
+        }
     }
+
     private void getLocationPermission()
     {
         /*
@@ -133,5 +187,61 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
 >>>>>>> abd7cf6e3a11c63bc6e7eaa9675445f8ef7b156d
+    }
+
+    @Override
+    public void onLocationChanged(Location location)
+    {
+        LatLng curPosition = new LatLng(location.getLatitude(), location.getLongitude());
+
+        mLocation = location;
+
+        //mMap.addMarker(new MarkerOptions().position(curPosition).title("Current position!"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(curPosition));
+
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(curPosition).zoom(15).bearing(0).build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+    @Override
+    public void onProviderEnabled(String provider) {}
+
+    @Override
+    public void onProviderDisabled(String provider) {}
+
+    private class CreateItemAsyncTask extends AsyncTask<Document, Void, Void>
+    {
+        @Override
+        protected Void doInBackground(Document... documents)
+        {
+            DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
+            databaseAccess.create(documents[0]);
+
+            Log.i(TAG, "Insert document into table");
+
+            return null;
+        }
+    }
+
+    private class LookupItemAsyncTask extends AsyncTask<Void, Void, ArrayList<Document>>
+    {
+        @Override
+        protected ArrayList<Document> doInBackground(Void... Voids)
+        {
+            DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
+            ArrayList<Document> documents = databaseAccess.lookup();
+
+            if(documents.isEmpty())
+            {
+                return null;
+            }
+
+            Log.i(TAG, "Retrieved documents from database.");
+
+            return documents;
+        }
     }
 }
