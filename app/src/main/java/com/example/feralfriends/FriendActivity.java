@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+
 import com.example.feralfriends.Database.DatabaseAccess;
 import com.google.android.gms.maps.model.LatLng;
 
