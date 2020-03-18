@@ -2,7 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:layout_margin="16dp"
+    android:layout_margin="5dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -11,86 +11,133 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginLeft="16dp">
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp">
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <ImageView
-                android:id="@+id/friend_photo"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:scaleType="center"
-                android:cropToPadding="true"
-                android:background="@android:color/darker_gray"/>
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:padding="0dp">
+
             <ImageButton
-                android:id="@+id/friend_camera"
+                android:id="@+id/friend_photo_button"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_menu_camera"/>
+                android:layout_height="140dp"
+                android:background="@android:color/darker_gray"
+                android:cropToPadding="true"
+                android:scaleType="center" />
         </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
-            <TextView
-                style="?android:listSeparatorTextViewStyle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/friend_name_label"/>
-            <EditText
-                android:id="@+id/friend_title"
-                android:hint="@string/friend_name_hint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp">
+
+        <EditText
+            style="?android:listSeparatorTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="cursive"
+            android:gravity="center"
+            android:text="@string/friend_name_label"
+            android:id="@+id/friend_title"
+            android:textSize="24dp" />
+
     </LinearLayout>
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp">
+        <ToggleButton
+            android:id="@+id/button_tnr"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/button_favorite"
+            android:checked="false"
+            android:text=""
+            android:textOff=""
+            android:textOn=""
+            android:layout_marginRight="30dp"
+            android:layout_marginLeft="16dp"/>
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/cat_icon_sleep"
+            android:layout_marginRight="2dp"/>
 
+        <EditText
+            android:id="@+id/number_friends"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:fontFamily="cursive"
+            android:gravity="center"
+            android:text="@string/number_of_cats"
+            android:textSize="16dp" />
+
+        <RatingBar
+            style="@style/ImageRatingBar"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:stepSize="1"
+            android:numStars="5"/>
+
+    </LinearLayout>
     <TextView
         style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/friend_details_label"
         />
+
     <Button
         android:id="@+id/friend_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Date"
-        android:background="#87c0f1"/>
-    <CheckBox
-        android:id="@+id/friend_fed"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/friend_fed_label"/>
+        android:background="#87c0f1"
+        android:fontFamily="cursive"
+        android:text="Feed"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/suspect_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fadingEdge="horizontal|vertical"
-        android:text="@string/friend_contact_text" />
     <Button
         android:id="@+id/friend_report"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="70dp"
         android:fadingEdge="horizontal|vertical"
-        android:text="@string/friend_report_text" />
+        android:fontFamily="cursive"
+        android:text="@string/friend_report_text"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
     <Button
         android:id="@+id/save_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="71dp"
         android:background="#87f2b0"
         android:fadingEdge="horizontal|vertical"
-        android:text="@string/save_friend_text" />
+        android:fontFamily="cursive"
+        android:text="@string/save_friend_text"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
     <Button
         android:id="@+id/delete_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#87f2b0"
         android:fadingEdge="horizontal|vertical"
-        android:text="@string/delete_friend" />
+        android:fontFamily="cursive"
+        android:text="@string/delete_friend"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

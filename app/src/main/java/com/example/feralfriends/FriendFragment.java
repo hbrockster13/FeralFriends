@@ -1,10 +1,11 @@
 package com.example.feralfriends;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
+
 
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,17 +16,27 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.feralfriends.models.FeralFriend;
+
 public class FriendFragment extends Fragment
 {
-    private EditText mTitleField;
+    private static final int REQUEST_CONTACT = 1;
+    private static final String ARG_FRIEND_ID = "friend_id";
+    private static final String DIALOG_DATE = "dialog_date";
+    private static final int REQUEST_DATE = 0;
+    private static final int REQUEST_PHOTO = 2;
+
+    private EditText mEditNameText;
     private Button mDateButton;
     private CheckBox mFedCheckBox;
     private Button mDeleteButton;
     private Button mSaveButton;
-    private int REQUEST_DATE = 0;
+    private FeralFriend mFriend;
+    private ImageButton mImageButton;
 
 
     public static FriendFragment newInstance()
@@ -45,9 +56,9 @@ public class FriendFragment extends Fragment
     public View onCreateView(@NonNull final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
         View v = inflater.inflate(R.layout.fragment_friend, container, false);
-        mTitleField = v.findViewById(R.id.friend_title);
-        //mTitleField.setText(mTitle.getTitle());
-        mTitleField.addTextChangedListener(new TextWatcher()
+        mEditNameText = v.findViewById(R.id.friend_title);
+
+        mEditNameText.addTextChangedListener(new TextWatcher()
         {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2)
@@ -58,7 +69,7 @@ public class FriendFragment extends Fragment
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2)
             {
-                //mCrime.setTitle(charSequence.toString());
+                mFriend.setTitle(charSequence.toString());
                 Toast.makeText(getContext(), "onTextChanged()", Toast.LENGTH_SHORT);
             }
 
@@ -76,25 +87,14 @@ public class FriendFragment extends Fragment
             @Override
             public void onClick(View v)
             {
-                //FragmentManager fragmentManager = getFragmentManager();
-               // DatePickerFragment dialog = DatePickerFragment.newInstance(mCrime.getmDate());
-                //dialog.setTargetFragment(FriendFragment.this, REQUEST_DATE);
-                //dialog.show(fragmentManager, DIALOG_DATE);onClick
+                FragmentManager fragmentManager = getFragmentManager();
+                DatePickerFragment dialog = DatePickerFragment.newInstance(mFriend.getmDate());
+                dialog.setTargetFragment(FriendFragment.this, REQUEST_DATE);
+                dialog.show(fragmentManager, DIALOG_DATE);
                 Toast.makeText(getContext(), "onCheckedChanged()", Toast.LENGTH_SHORT);
             }
         });
 
-        mFedCheckBox = v.findViewById(R.id.friend_fed);
-        //mFedCheckBox.setChecked(mCrime.ismSolved());
-        mFedCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b)
-            {
-               // mCrime.setmSolved(b);
-                Toast.makeText(getContext(), "onCheckedChanged()", Toast.LENGTH_SHORT);
-            }
-        });
 
         mDeleteButton = v.findViewById(R.id.delete_button);
         mDeleteButton.setOnClickListener(new View.OnClickListener()

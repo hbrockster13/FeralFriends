@@ -22,4 +22,6 @@
     <string name="delete_friend">Delete</string>
     <string name="title_activity_maps">Map</string>
     <string name="submit">Map</string>
+    <string name="friend_tnr_label">TNR</string>
+    <string name="number_of_cats">12</string>
 </resources>
