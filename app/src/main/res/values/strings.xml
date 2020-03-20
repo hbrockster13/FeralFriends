@@ -3,7 +3,7 @@
     <string name="test">test fragment</string>
     <string name="friend_name_hint">Enter a name for our friend.</string>
     <string name="friend_name_label">Name</string>
-    <string name="friend_details_label">Details</string>
+    <string name="friend_details_label">Please type details about the feral friends that you encounter. Perhaps tell a story about how you found them.</string>
     <string name="friend_fed_label">Fed</string>
     <string name="date_picker_title">Date when our friend was first found</string>
     <string name="contact_name">Contact Name</string>
