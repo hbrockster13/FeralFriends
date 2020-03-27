@@ -16,7 +16,7 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 
 import android.os.Bundle;
-public class SignInActivity {
+public class SignInActivity extends AppCompatActivity{
     int RC_SIGN_IN = 0;
     SignInButton signInButton;
     GoogleSignInClient mGoogleSignInClient;
@@ -66,7 +66,7 @@ public class SignInActivity {
     protected void onStart(){ //this checks if the user has already signed in
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null){ //if the account exists from the user previously being signed in
-            startActivity(new Intent(SignInActivity.this, MapsActivity.class);
+            startActivity(new Intent(SignInActivity.this, MapsActivity.class));
         }
         super.onStart();
     }
