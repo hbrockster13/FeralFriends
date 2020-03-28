@@ -3,7 +3,11 @@ package com.example.feralfriends;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
+
+import android.app.FragmentManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -60,7 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
+        final FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -95,6 +99,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         CreateItemAsyncTask task = new CreateItemAsyncTask();
                         task.execute(document);
+                        //Call a new feral friend fragment
+                        fab.setOnClickListener(new View.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(View view)
+                            {
+                                Intent intent = FriendActivity.newIntent(getApplicationContext());
+                                startActivity(intent);
+                            }
+                        });
+
                     }
                 });
             }
