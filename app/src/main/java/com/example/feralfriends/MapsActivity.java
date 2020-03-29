@@ -88,6 +88,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 CreateItemAsyncTask task = new CreateItemAsyncTask();
                 task.execute(document);
+
+                //Call a new feral friend fragment
+                Intent intent = FriendActivity.newIntent(getApplicationContext());
+                startActivity(intent);
             }
         });
 
