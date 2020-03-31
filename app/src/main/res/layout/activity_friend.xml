@@ -39,13 +39,13 @@
         android:layout_marginRight="0dp">
 
         <EditText
-            style="?android:listSeparatorTextViewStyle"
+            android:id="@+id/friend_title"
+            style="@style/Widget.AppCompat.EditText"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fontFamily="cursive"
             android:gravity="center"
             android:text="@string/friend_name_label"
-            android:id="@+id/friend_title"
             android:textSize="24dp" />
 
     </LinearLayout>
