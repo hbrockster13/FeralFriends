@@ -33,9 +33,13 @@ public class FeralFriend
      */
     private boolean mTNRed;
     /**
-     * GPS location of colony
+     * GPS longitude of colony
      */
-    private String mLocation;
+    private String mLongitude;
+    /**
+     * GPS Latitude of colony
+     */
+    private String mLatitude;
 
     public FeralFriend()
     {
@@ -115,13 +119,23 @@ public class FeralFriend
         this.mTNRed = mTNRed;
     }
 
-    public String getLocation()
+    public String getLongitude()
     {
-        return mLocation;
+        return mLongitude;
     }
 
-    public void setLocation(String location)
+    public void setLongitude(String mLongitude)
     {
-        this.mLocation = location;
+        this.mLongitude = mLongitude;
+    }
+
+    public String getLatitude()
+    {
+        return mLatitude;
+    }
+
+    public void setLatitude(String mLatitude)
+    {
+        this.mLatitude = mLatitude;
     }
 }//End of FeralFriends
