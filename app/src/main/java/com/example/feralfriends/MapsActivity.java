@@ -200,8 +200,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             for(Document document : documents)
             {
-                double lat = Double.parseDouble(document.get("Lat").asPrimitive().getValue().toString());
-                double lng = Double.parseDouble(document.get("Lng").asPrimitive().getValue().toString());
+                double lat, lng;
+
+                try
+                {
+                    lat = Double.parseDouble(document.get("Lat").asPrimitive().getValue().toString());
+                    lng = Double.parseDouble(document.get("Lng").asPrimitive().getValue().toString());
+                }
+                catch(NullPointerException npe)
+                {
+                    Log.e(TAG, npe.getMessage());
+                    continue;
+                }
 
                 LatLng markerPosition = new LatLng(lat, lng);
                 LatLng curPosition = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());

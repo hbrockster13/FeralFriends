@@ -24,7 +24,7 @@ public class LoginActivity extends AppCompatActivity
     SignInButton signInButton;
     GoogleSignInClient mGoogleSignInClient;
 
-    private static final String TAG = "FriendActivity";
+    private static final String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -38,6 +38,7 @@ public class LoginActivity extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
+                Log.i(TAG, "Normal sign in");
                 Toast.makeText(getApplicationContext(), "Clicked", Toast.LENGTH_SHORT).show();
                 Intent i = new Intent(getApplicationContext(), MapsActivity.class);
                 startActivity(i);
@@ -54,6 +55,7 @@ public class LoginActivity extends AppCompatActivity
         signInButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
+                Log.i(TAG, "Google sign in");
                 signIn();
             }
         });
@@ -77,7 +79,7 @@ public class LoginActivity extends AppCompatActivity
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             startActivity(new Intent(LoginActivity.this, MapsActivity.class)); //on successful login, go to next activity
         } catch (ApiException e){ //catches error from unsuccessful result
-            Log.w("Sign In Error", "signInResult:Failed code=" + e.getStatusCode());
+            Log.w(TAG, "signInResult:Failed code=" + e.getStatusCode());
         }
     }
 
