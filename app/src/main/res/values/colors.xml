@@ -5,4 +5,6 @@
     <color name="colorAccent">#b8ffda</color>
     <color name="buttonColor">#b8ffda</color>
     <color name="tnrColor">#de8ada</color>
+    <color name="deleteColor">#ff8585</color>
+    <color name="borderColor">#000000</color>
 </resources>

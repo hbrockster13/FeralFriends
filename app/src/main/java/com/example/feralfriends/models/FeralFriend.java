@@ -32,6 +32,14 @@ public class FeralFriend
      * Has the Friend been trapped, neutered and return
      */
     private boolean mTNRed;
+    /**
+     * GPS longitude of colony
+     */
+    private String mLongitude;
+    /**
+     * GPS Latitude of colony
+     */
+    private String mLatitude;
 
     public FeralFriend()
     {
@@ -46,12 +54,12 @@ public class FeralFriend
 
     }
 
-    public UUID getmID()
+    public UUID getID()
     {
         return mID;
     }
 
-    public void setmID(UUID mID)
+    public void setID(UUID mID)
     {
         this.mID = mID;
     }
@@ -66,12 +74,12 @@ public class FeralFriend
         this.title = title;
     }
 
-    public Date getmDate()
+    public Date getDate()
     {
         return mDate;
     }
 
-    public void setmDate(Date mDate)
+    public void setDate(Date mDate)
     {
         this.mDate = mDate;
     }
@@ -98,7 +106,7 @@ public class FeralFriend
 
     public String getPhotoFileName()
     {
-        return "IMG_" + getmID().toString() + ".jpg";
+        return "IMG_" + getID().toString() + ".jpg";
     }
 
     public boolean isTNRed()
@@ -110,4 +118,24 @@ public class FeralFriend
     {
         this.mTNRed = mTNRed;
     }
-}
+
+    public String getLongitude()
+    {
+        return mLongitude;
+    }
+
+    public void setLongitude(String mLongitude)
+    {
+        this.mLongitude = mLongitude;
+    }
+
+    public String getLatitude()
+    {
+        return mLatitude;
+    }
+
+    public void setLatitude(String mLatitude)
+    {
+        this.mLatitude = mLatitude;
+    }
+}//End of FeralFriends
