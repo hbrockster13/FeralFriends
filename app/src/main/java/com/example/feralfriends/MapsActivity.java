@@ -36,7 +36,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.maps.android.SphericalUtil;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
@@ -49,6 +48,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient fusedLocationProviderClient;
     private Location mLocation;
     private LocationManager locationManager;
+    private FloatingActionButton fab;
 
     private static final String TAG = "MapsActivity";
 
@@ -64,7 +64,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        final FloatingActionButton fab = findViewById(R.id.fab);
+        fab = findViewById(R.id.fab);
+        fab.hide();
+
         fab.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -73,45 +75,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Snackbar.make(view, "Adding a FeralFriend", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
-                Task<Location> task = fusedLocationProviderClient.getLastLocation();
+                LatLng cur = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+                Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Marker Title"));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
 
-                task.addOnSuccessListener(new OnSuccessListener<Location>()
-                {
-                    @Override
-                    public void onSuccess(Location location)
-                    {
-                        mLocation = location;
-                        Toast.makeText(getApplicationContext(),
-                                "Long: " + mLocation.getLongitude()
-                                        + " Lat: " + mLocation.getLatitude()
-                                ,Toast.LENGTH_SHORT).show();
+                //Add marker to database
+                Document document = new Document();
+                document.put("MarkerId", marker.getId());
+                document.put("Lat", cur.latitude);
+                document.put("Lng", cur.longitude);
+                document.put("Title", marker.getTitle());
 
-                        LatLng cur = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-                        Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Marker Title"));
-                        mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
+                CreateItemAsyncTask task = new CreateItemAsyncTask();
+                task.execute(document);
 
-                        //Add marker to database
-                        Document document = new Document();
-                        document.put("MarkerId", marker.getId());
-                        document.put("Lat", cur.latitude);
-                        document.put("Lng", cur.longitude);
-                        document.put("Title", marker.getTitle());
-
-                        CreateItemAsyncTask task = new CreateItemAsyncTask();
-                        task.execute(document);
-                        //Call a new feral friend fragment
-                        fab.setOnClickListener(new View.OnClickListener()
-                        {
-                            @Override
-                            public void onClick(View view)
-                            {
-                                Intent intent = FriendActivity.newIntent(getApplicationContext());
-                                startActivity(intent);
-                            }
-                        });
-
-                    }
-                });
+                //Call a new feral friend fragment
+                Intent intent = FriendActivity.newIntent(getApplicationContext());
+                startActivity(intent);
             }
         });
 
@@ -128,51 +108,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap)
     {
         mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMyLocationEnabled(true);
 
-        //Get user's marker from the database
-        LookupItemAsyncTask task = new LookupItemAsyncTask();
-
-        try
+        Task<Location> task = fusedLocationProviderClient.getLastLocation();
+        task.addOnSuccessListener(new OnSuccessListener<Location>()
         {
-            ArrayList<Document> documents = task.execute().get();
-
-            if(documents == null)
+            @Override
+            public void onSuccess(Location location)
             {
-                return;
+                if(location == null)
+                {
+                    return;
+                }
+
+                mLocation = location;
+                Toast.makeText(getApplicationContext(),
+                    "Long: " + mLocation.getLongitude()
+                        + " Lat: " + mLocation.getLatitude()
+                    ,Toast.LENGTH_SHORT).show();
+
+                fab.show();
+
+                //Add markers that aren't more than the maximum distance
+                addMarkers(100);
             }
-
-            for(Document document : documents)
-            {
-                double lat = Double.parseDouble(document.get("Lat").asPrimitive().getValue().toString());
-                double lng = Double.parseDouble(document.get("Lng").asPrimitive().getValue().toString());
-
-                LatLng curPosition = new LatLng(lat, lng);
-
-                //Add the existing marker
-                mMap.addMarker(new MarkerOptions().position(curPosition).title(document.get("Title").asString()));
-            }
-        }
-        catch(InterruptedException ie)
-        {
-            Log.e(TAG, ie.getMessage());
-        }
-        catch(ExecutionException ee)
-        {
-            Log.e(TAG, ee.getMessage());
-        }
+        });
     }
 
     private void getLocationPermission()
@@ -206,7 +171,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //mMap.addMarker(new MarkerOptions().position(curPosition).title("Current position!"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(curPosition));
 
-        CameraPosition cameraPosition = new CameraPosition.Builder().target(curPosition).zoom(15).bearing(0).build();
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(curPosition).zoom(20).build();
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
@@ -218,6 +183,58 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onProviderDisabled(String provider) {}
+
+    private void addMarkers(double maxDistance)
+    {
+        //Get user's marker from the database
+        LookupItemAsyncTask task = new LookupItemAsyncTask();
+
+        try
+        {
+            ArrayList<Document> documents = task.execute().get();
+
+            if(documents == null)
+            {
+                return;
+            }
+
+            for(Document document : documents)
+            {
+                double lat, lng;
+
+                try
+                {
+                    lat = Double.parseDouble(document.get("Lat").asPrimitive().getValue().toString());
+                    lng = Double.parseDouble(document.get("Lng").asPrimitive().getValue().toString());
+                }
+                catch(NullPointerException npe)
+                {
+                    Log.e(TAG, npe.getMessage());
+                    continue;
+                }
+
+                LatLng markerPosition = new LatLng(lat, lng);
+                LatLng curPosition = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+
+                double distanceBetween = SphericalUtil.computeDistanceBetween(markerPosition, curPosition);
+
+                //Place markers that are within the maximum distance of the current position
+                if(distanceBetween <= maxDistance)
+                {
+                    Marker marker = mMap.addMarker(new MarkerOptions().position(markerPosition).title(document.get("Title").asString()));
+                    Log.i(TAG, "Added marker: " + marker.getId() + ", Title: " + marker.getTitle() + ", Distance between: " + distanceBetween + " meters");
+                }
+            }
+        }
+        catch(InterruptedException ie)
+        {
+            Log.e(TAG, ie.getMessage());
+        }
+        catch(ExecutionException ee)
+        {
+            Log.e(TAG, ee.getMessage());
+        }
+    }
 
     private class CreateItemAsyncTask extends AsyncTask<Document, Void, Void>
     {

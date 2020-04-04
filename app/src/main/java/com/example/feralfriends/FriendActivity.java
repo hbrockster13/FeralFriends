@@ -36,7 +36,6 @@ public class FriendActivity extends AppCompatActivity
 
     public static Intent newIntent(Context packageContext)
     {
-
         Intent intent = new Intent(packageContext, FriendActivity.class);
         return intent;
     }
@@ -44,6 +43,8 @@ public class FriendActivity extends AppCompatActivity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+        mFriend = new FeralFriend();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_friend);
         mEditNameText = findViewById(R.id.friend_title);
