@@ -41,10 +41,27 @@ public class FeralFriend
      */
     private String mLatitude;
 
+    /**
+     * Description details
+     */
+    private String mDetails;
+
+    /**
+     * Number of animals at location
+     */
+    private int mNumberOfFriend;
+
     public FeralFriend()
     {
         this(UUID.randomUUID());
-//TODO: May need to query to get the next or correct ID or make sure this random one doesn't exist
+        setFed(false);
+        setDate(new Date());
+        setDetails("-- No Details at the moment --");
+        setFirstFriend("Some Crazy cat lady");
+        setLatitude("0");
+        setLongitude("0");
+        setTitle("No Title");
+        setTNRed(false);
     }
 
     public FeralFriend(UUID ID)
@@ -137,5 +154,36 @@ public class FeralFriend
     public void setLatitude(String mLatitude)
     {
         this.mLatitude = mLatitude;
+    }
+
+    public String getDetails()
+    {
+        return mDetails;
+    }
+
+    public void setDetails(String mDetails)
+    {
+        this.mDetails = mDetails;
+    }
+
+    public int getNumberOfFriends()
+    {
+        return mNumberOfFriend;
+    }
+
+    public void setNumberOfFriends(int mNumberOfFriend)
+    {
+        this.mNumberOfFriend = mNumberOfFriend;
+    }
+
+    public String buildReport()
+    {
+        String report = "FRIEND REPORT:"
+                + "\nTitle: " + (this.getTitle().isEmpty()? "NO TITLE PROVIDED" : this.getTitle())
+                + "\nLast Fed: " + this.getDate().toString()
+                + "\nLocation: " + this.getLongitude() + ", " + this.getLatitude()
+                + "\nBeen TNR:" + (this.isTNRed()? "YES" : "NO")
+                + "\nDetails: " + this.getDetails();
+        return report;
     }
 }//End of FeralFriends

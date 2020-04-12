@@ -43,11 +43,13 @@
             style="@style/Widget.AppCompat.EditText"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fontFamily="cursive"
+            android:background="@drawable/edit_text_border"
+            android:fontFamily="casual"
             android:gravity="center"
-            android:text="@string/friend_name_label"
-            android:textSize="24dp"
-            android:background="@drawable/edit_text_border"/>
+            android:hint="@string/friend_name_label"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:textSize="24dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -68,11 +70,13 @@
             android:textOn=""
             android:layout_marginRight="30dp"
             android:layout_marginLeft="16dp"/>
+
         <ImageView
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:src="@drawable/cat_icon_sleep"
-            android:layout_marginRight="2dp"/>
+            android:layout_marginRight="2dp"
+            android:layout_marginLeft="15dp"/>
 
         <EditText
             android:id="@+id/number_friends"
@@ -80,71 +84,91 @@
             android:layout_height="match_parent"
             android:fontFamily="cursive"
             android:gravity="center"
-            android:text="@string/number_of_cats"
+            android:hint="@string/number_of_cats"
+            android:inputType="number"
             android:textSize="16dp" />
-        <RatingBar
-            android:id="@+id/ratingBar1"
-            android:layout_gravity="center"
+
+        <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:isIndicator="true"
-            android:numStars="5"
-            android:stepSize="0.01" />
+            android:layout_height="match_parent"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="30dp"
+            android:fontFamily="casual"
+            android:gravity="center_vertical|center_horizontal"
+            android:text="Last Fed: "
+            android:textColor="#1F1C1C"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/last_fed"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="0dp"
+            android:fontFamily="casual"
+            android:hint="MM/DD/YYYY"
+            android:textSize="18sp"
+            android:typeface="monospace"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical|center_horizontal"/>
 
 
     </LinearLayout>
-    <TextView
+
+    <EditText
+        android:id="@+id/friend_details"
         style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:layout_margin="3dp"
-        android:text="@string/friend_details_label"
         android:background="@drawable/edit_text_border"
-        />
+        android:hint="@string/friend_details_label"
+        android:textSize="14sp"
+        android:textStyle="italic" />
 
     <Button
-        android:id="@+id/friend_date"
+        android:id="@+id/friend_fed"
         android:layout_width="match_parent"
         android:layout_height="40dp"
+        android:layout_margin="4dp"
         android:background="#87c0f1"
-        android:fontFamily="cursive"
         android:fadingEdge="horizontal|vertical"
+        android:fontFamily="casual"
         android:text="Feed"
         android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_margin="4dp"/>
+        android:textStyle="bold"/>
 
     <Button
         android:id="@+id/friend_report"
         android:layout_width="match_parent"
         android:layout_height="40dp"
+        android:layout_margin="4dp"
         android:background="#87c0f1"
         android:fadingEdge="horizontal|vertical"
-        android:fontFamily="cursive"
+        android:fontFamily="casual"
         android:text="@string/friend_report_text"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_margin="4dp"/>
+        android:textStyle="bold" />
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="20dp"
         android:layout_margin="0dp"
-        android:layout_weight="4"
-        >
+        android:layout_weight="4">
 
         <Button
             android:id="@+id/save_button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:layout_weight="2"
             android:background="#87f2b0"
             android:fadingEdge="horizontal|vertical"
-            android:fontFamily="cursive"
+            android:fontFamily="casual"
             android:text="@string/save_friend_text"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_margin="3dp"
-            android:layout_weight="2"
 
             />
 
@@ -152,14 +176,13 @@
             android:id="@+id/delete_button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@color/deleteColor"
-            android:fadingEdge="horizontal|vertical"
-            android:fontFamily="cursive"
-            android:text="@string/delete_friend"
-            android:textSize="18sp"
-            android:textStyle="bold"
             android:layout_margin="3dp"
             android:layout_weight="2"
-            />
+            android:background="@color/deleteColor"
+            android:fadingEdge="horizontal|vertical"
+            android:fontFamily="casual"
+            android:text="@string/delete_friend"
+            android:textSize="18sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>

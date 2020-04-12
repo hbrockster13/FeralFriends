@@ -7,6 +7,7 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
@@ -17,6 +18,8 @@ import java.util.GregorianCalendar;
 
 public class DatePickerFragment extends DialogFragment
 {
+    private static final String TAG = "DatePickerFragment: ";
+
     private static final String ARG_DATE = "arg_date";
 
     public static final String EXTRA_DATE = "extra_date";
@@ -62,7 +65,7 @@ public class DatePickerFragment extends DialogFragment
                         int day = mDatePicker.getDayOfMonth();
 
                         Date date = new GregorianCalendar(year, month, day).getTime();
-
+                        Log.i(TAG, date.toString());
                         sendResult(Activity.RESULT_OK, date);
                     }
                 })
