@@ -77,7 +77,7 @@ public class LoginActivity extends AppCompatActivity
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask){
         try{
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            startActivity(new Intent(LoginActivity.this, MapsActivity.class)); //on successful login, go to next activity
+            startActivity(new Intent(getApplicationContext(), MapsActivity.class)); //on successful login, go to next activity
         } catch (ApiException e){ //catches error from unsuccessful result
             Log.w(TAG, "signInResult:Failed code=" + e.getStatusCode());
         }
@@ -87,7 +87,7 @@ public class LoginActivity extends AppCompatActivity
     protected void onStart(){ //this checks if the user has already signed in
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account != null){ //if the account exists from the user previously being signed in
-            startActivity(new Intent(LoginActivity.this, MapsActivity.class));
+            startActivity(new Intent(getApplicationContext(), MapsActivity.class));
         }
         super.onStart();
     }
