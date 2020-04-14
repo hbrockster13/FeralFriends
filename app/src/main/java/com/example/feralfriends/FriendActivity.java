@@ -1,5 +1,6 @@
 package com.example.feralfriends;
 
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
@@ -28,17 +29,19 @@ import java.util.Date;
 
 public class FriendActivity extends AppCompatActivity
 {
-    private static final String TAG = "FriendActivity: ";
+    private static final String TAG = "FriendActivity";
     private static final int REQUEST_CONTACT = 1;
     private static final String ARG_FRIEND_ID = "friend_id";
     private static final String DIALOG_DATE = "dialog_date";
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_PHOTO = 2;
+    private static final int RESULT_DELETE = 2;
 
     private EditText mEditNameText;
     private Button mFedButton;
     private Button mDeleteButton;
     private Button mSaveButton;
+    private Button mCancelButton;
     private FeralFriend mFriend;
     private ImageButton mImageButton;
     private EditText mFriendDetails;
@@ -47,28 +50,38 @@ public class FriendActivity extends AppCompatActivity
     private ToggleButton mTNRButton;
     private EditText mNumFriendsTextView;
 
-    public static Intent newIntent(Context packageContext)
+    public static Intent newIntent(Context packageContext, FeralFriend friend)
     {
         Intent intent = new Intent(packageContext, FriendActivity.class);
+        intent.putExtra("friend_model", friend);
+
         return intent;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-        mFriend = new FeralFriend();
+        mFriend = (FeralFriend) getIntent().getSerializableExtra("friend_model");
+
+        if(mFriend == null)
+        {
+            Log.i(TAG, "Creating a new FeralFriend");
+            mFriend = new FeralFriend();
+        }
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_friend);
 
-        Date d = new Date();
+        Date d = mFriend.getDate();
         SimpleDateFormat dateFormatter = new SimpleDateFormat(
-                "MM/dd/yyyy");
+        "MM/dd/yyyy");
         String strDate = dateFormatter.format(d);
         mLastFedTextView = findViewById(R.id.last_fed);
         mLastFedTextView.setText(strDate);
+
         /*Set up title button*/
         mEditNameText = findViewById(R.id.friend_title);
+        mEditNameText.setText(mFriend.getTitle());
         mEditNameText.addTextChangedListener(new TextWatcher()
         {
             @Override
@@ -93,6 +106,7 @@ public class FriendActivity extends AppCompatActivity
         });
         /*Setup the details button so when the user changes the text it updates*/
         mFriendDetails = findViewById(R.id.friend_details);
+        mFriendDetails.setText(mFriend.getDetails());
         mFriendDetails.addTextChangedListener(new TextWatcher()
         {
             @Override
@@ -122,10 +136,14 @@ public class FriendActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
+                Log.i(TAG, "Fed FeralFriend button was clicked");
+
                 mFriend.setFed(true);
                 FragmentManager fragmentManager = getFragmentManager();
                 DatePickerFragment dialog = DatePickerFragment.newInstance(mFriend.getDate());
                 dialog.show(fragmentManager, DIALOG_DATE);
+
+                Log.i(TAG, "DatePickerFragment new instance was called");
 
                 SimpleDateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
                 mLastFedTextView.setText(dateFormatter.format(mFriend.getDate()));
@@ -147,12 +165,15 @@ public class FriendActivity extends AppCompatActivity
                 i.putExtra(Intent.EXTRA_SUBJECT, "FERAL FRIEND REPORT");
                 startActivity(i);
 
+                Log.i(TAG, "Share FeralFriend button was clicked");
+
                 Context context = getApplicationContext();
                 Toast.makeText(context, "Sharing Friend Report", Toast.LENGTH_SHORT);
             }
         });
         /*Set up if the animal has been tnr'ed*/
         mTNRButton = findViewById(R.id.button_tnr);
+        mTNRButton.setChecked(mFriend.isTNRed());
         mTNRButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {
             @Override
@@ -178,6 +199,19 @@ public class FriendActivity extends AppCompatActivity
 
             }
         });
+
+        mCancelButton = findViewById(R.id.cancel_button);
+        mCancelButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Log.i(TAG, "Cancel FeralFriend button was clicked");
+
+                setResult(Activity.RESULT_CANCELED);
+                finish();
+            }
+        });
         /*Set up delete button*/
         mDeleteButton = findViewById(R.id.delete_button);
         mDeleteButton.setOnClickListener(new View.OnClickListener()
@@ -185,35 +219,41 @@ public class FriendActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                //TODO: NEED TO QUERY DATABASE FOR REMOVAL
-                Context context = getApplicationContext();
-                Toast.makeText(context, "onTextChanged()", Toast.LENGTH_SHORT);
+                Log.i(TAG, "Delete FeralFriend button was clicked");
+
+                Intent intent = new Intent();
+                intent.putExtra("friend_model", mFriend);
+                setResult(RESULT_DELETE, intent);
+
+                finish();
             }
         });
         /*User can identify how many cats present textview*/
         mNumFriendsTextView = findViewById(R.id.number_friends);
+        mNumFriendsTextView.setText(String.valueOf(mFriend.getNumberOfFriends()));
         mNumFriendsTextView.addTextChangedListener(new TextWatcher()
         {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2)
-            {
-                //this is useless
-            }
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2)
             {
-                mFriend.setNumberOfFriends(Integer.parseInt(charSequence.toString()));
-                Context context = getApplicationContext();
-                Toast.makeText(context, "Changed number of friends: " + Integer.parseInt(charSequence.toString()), Toast.LENGTH_SHORT);
-                Log.i(TAG, "Changed number of friends: " + Integer.parseInt(charSequence.toString()));
+                try
+                {
+                    mFriend.setNumberOfFriends(Integer.parseInt(charSequence.toString()));
+                    Context context = getApplicationContext();
+                    Toast.makeText(context, "Changed number of friends: " + Integer.parseInt(charSequence.toString()), Toast.LENGTH_SHORT);
+                    Log.i(TAG, "Changed number of friends: " + Integer.parseInt(charSequence.toString()));
+                }
+                catch(NumberFormatException nfe)
+                {
+                    Log.e(TAG, nfe.getMessage());
+                }
             }
 
             @Override
-            public void afterTextChanged(Editable editable)
-            {
-                //this is useless
-            }
+            public void afterTextChanged(Editable editable) {}
         });
 
         mSaveButton = findViewById(R.id.save_button);
@@ -222,7 +262,12 @@ public class FriendActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                //TODO: Need to implement a way to save this model to the database
+                Log.i(TAG, "Save FeralFriend button was clicked");
+
+                Intent intent = new Intent();
+                intent.putExtra("friend_model", mFriend);
+                setResult(Activity.RESULT_OK, intent);
+
                 finish();
             }
         });
