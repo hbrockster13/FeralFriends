@@ -1,14 +1,17 @@
 package com.example.feralfriends;
 
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.icu.text.SimpleDateFormat;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,16 +19,25 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
 import com.example.feralfriends.Database.DatabaseAccess;
+import com.example.feralfriends.models.FeralFriend;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -37,6 +49,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener
@@ -49,7 +62,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mLocation;
     private LocationManager locationManager;
     private FloatingActionButton fab;
+    private ArrayList<FeralFriend> friends;
+    private HashMap<Marker, Integer> mHashMap = new HashMap<Marker, Integer>();
 
+    private static final int REQUEST_ADD = 1;
+    private static final int REQUEST_EDIT = 2;
+    private static final int RESULT_DELETE = 2;
     private static final String TAG = "MapsActivity";
 
     @Override
@@ -72,26 +90,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view)
             {
-                Snackbar.make(view, "Adding a FeralFriend", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Log.i(TAG, "Action button for adding feral friend clicked");
 
-                LatLng cur = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-                Marker marker = mMap.addMarker(new MarkerOptions().position(cur).title("Marker Title"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
-
-                //Add marker to database
-                Document document = new Document();
-                document.put("MarkerId", marker.getId());
-                document.put("Lat", cur.latitude);
-                document.put("Lng", cur.longitude);
-                document.put("Title", marker.getTitle());
-
-                CreateItemAsyncTask task = new CreateItemAsyncTask();
-                task.execute(document);
-
-                //Call a new feral friend fragment
-                Intent intent = FriendActivity.newIntent(getApplicationContext());
-                startActivity(intent);
+                //Call a new feral friend activity and get user input
+                Intent intent = FriendActivity.newIntent(getApplicationContext(), null);
+                startActivityForResult(intent, REQUEST_ADD);
             }
         });
 
@@ -105,6 +108,181 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         catch(SecurityException se)
         {
             Log.e(TAG, se.getMessage());
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == REQUEST_ADD)
+        {
+            if(resultCode == Activity.RESULT_OK)
+            {
+                addFeralFriend(data);
+            }
+            else if(resultCode == Activity.RESULT_CANCELED)
+            {
+                Log.i(TAG, "New FeralFriend was cancelled");
+            }
+        }
+        else if(requestCode == REQUEST_EDIT)
+        {
+            if(resultCode == Activity.RESULT_OK)
+            {
+                editFeralFriend(data);
+            }
+            else if(resultCode == RESULT_DELETE)
+            {
+                deleteFeralFriend(data);
+            }
+            else if(resultCode == Activity.RESULT_CANCELED)
+            {
+                Log.i(TAG, "Editing of FeralFriend was cancelled");
+            }
+        }
+    }
+
+    private void addFeralFriend(Intent data)
+    {
+        Log.i(TAG, "Adding a new FeralFriend");
+
+        FeralFriend friend = (FeralFriend) data.getSerializableExtra("friend_model");
+        friend.setUserID(DatabaseAccess.getInstance(MapsActivity.this).getUserID());
+        friend.setLatitude(mLocation.getLatitude());
+        friend.setLongitude(mLocation.getLongitude());
+
+        //Add the FeralFriend to the database
+        Document document = friend.asDocument();
+
+        CreateItemAsyncTask task = new CreateItemAsyncTask();
+
+        try
+        {
+            if(!task.execute(document).get().booleanValue())
+            {
+                Log.i(TAG, "Failed to add a new FeralFriend");
+                return;
+            }
+        }
+        catch(ExecutionException ee)
+        {
+            Log.e(TAG, ee.getMessage());
+        }
+        catch(InterruptedException ie)
+        {
+            Log.e(TAG, ie.getMessage());
+        }
+
+        //Add the marker for location of FeralFriend on map
+        LatLng cur = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
+        Marker marker = mMap.addMarker(new MarkerOptions().position(cur));
+        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.cat_icon_sleep_3));
+
+        //Add new friend to data structures
+        friends.add(friend);
+        mHashMap.put(marker, friends.size() - 1);
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
+    }
+
+    private void editFeralFriend(Intent data)
+    {
+        FeralFriend editedFriend = (FeralFriend) data.getSerializableExtra("friend_model");
+        FeralFriend oldFriend = null;
+
+        for(FeralFriend friend : friends)
+        {
+            if(friend.getID().equals(editedFriend.getID()))
+            {
+                oldFriend = friend;
+                break;
+            }
+        }
+
+        //Check if the models are identical before updating database
+        if(oldFriend.equals(editedFriend))
+        {
+            Log.i(TAG, "No changes made to the model");
+            return;
+        }
+
+        Log.i(TAG, "Replacing old FeralFriend with recently modified one in the database");
+
+        //Add FeralFriend to the database
+        Document document = editedFriend.asDocument();
+
+        CreateItemAsyncTask task = new CreateItemAsyncTask();
+
+        try
+        {
+            if(!task.execute(document).get().booleanValue())
+            {
+                Log.i(TAG, "Failed to replace old FeralFriend");
+                return;
+            }
+        }
+        catch(ExecutionException ee)
+        {
+            Log.e(TAG, ee.getMessage());
+        }
+        catch(InterruptedException ie)
+        {
+            Log.e(TAG, ie.getMessage());
+        }
+
+        //Replace old model with new one in data structure
+        friends.set(friends.indexOf(oldFriend), editedFriend);
+
+        //Update current marker on map
+        for(Marker marker : mHashMap.keySet())
+        {
+            if(Double.compare(marker.getPosition().latitude, editedFriend.getLatitude()) == 0 && Double.compare(marker.getPosition().longitude, editedFriend.getLongitude()) == 0)
+            {
+                marker.showInfoWindow();
+                break;
+            }
+        }
+    }
+
+    private void deleteFeralFriend(Intent data)
+    {
+        Log.i(TAG, "Deleting FeralFriend");
+
+        FeralFriend friend = (FeralFriend) data.getSerializableExtra("friend_model");
+
+        DeleteItemAsyncTask task = new DeleteItemAsyncTask();
+
+        try
+        {
+            if(!task.execute(friend.asDocument()).get())
+            {
+                Log.i(TAG, "Failed to delete FeralFriend");
+                return;
+            }
+        }
+        catch(ExecutionException ee)
+        {
+            Log.e(TAG, ee.getMessage());
+        }
+        catch(InterruptedException ie)
+        {
+            Log.e(TAG, ie.getMessage());
+        }
+
+        //Remove marker from map and data structures
+        for(Marker marker : mHashMap.keySet())
+        {
+            if(Double.compare(marker.getPosition().latitude, friend.getLatitude()) == 0 && Double.compare(marker.getPosition().longitude, friend.getLongitude()) == 0)
+            {
+                marker.remove();
+
+                mHashMap.remove(marker);
+                friends.remove(friend);
+
+                break;
+            }
         }
     }
 
@@ -126,16 +304,83 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     return;
                 }
 
+                //Update the user's location
                 mLocation = location;
-                Toast.makeText(getApplicationContext(),
-                    "Long: " + mLocation.getLongitude()
-                        + " Lat: " + mLocation.getLatitude()
-                    ,Toast.LENGTH_SHORT).show();
 
+                //Allow the user to add a FeralFriend
                 fab.show();
 
                 //Add markers that aren't more than the maximum distance
-                addMarkers(100);
+                //1600 meters in a mile
+                addMarkersWithinDistance(1600);
+            }
+        });
+
+        //Create custom info window for markers
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter()
+        {
+            @Override
+            public View getInfoWindow(Marker marker)
+            {
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker)
+            {
+                //Get FeralFriend from marker
+                FeralFriend friend = friends.get(mHashMap.get(marker));
+
+                View view = getLayoutInflater().inflate(R.layout.info_window, null);
+
+                //Setup the view from the FeralFriend model
+                EditText title = view.findViewById(R.id.friend_title);
+                title.setText(friend.getTitle());
+
+                EditText description = view.findViewById(R.id.friend_details);
+                description.setText(friend.getDetails());
+
+                ToggleButton tnrButton = view.findViewById(R.id.button_tnr);
+                tnrButton.setChecked(friend.isTNRed());
+
+                EditText numFriends = view.findViewById(R.id.number_friends);
+                numFriends.setText(String.valueOf(friend.getNumberOfFriends()));
+
+                TextView lastFed = view.findViewById(R.id.last_fed);
+                SimpleDateFormat dateFormatter = new SimpleDateFormat("MM/dd/yyyy");
+                lastFed.setText(dateFormatter.format(friend.getDate()));
+
+                Log.i(TAG, "Returned info_window view from layout");
+
+                return view;
+            }
+        });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener()
+        {
+            @Override
+            public boolean onMarkerClick(Marker marker)
+            {
+                FeralFriend friend = friends.get(mHashMap.get(marker));
+
+                Log.i(TAG, "Clicked on marker, " + "ID: " + friend.getID() + ", " + "Title: " + friend.getTitle());
+
+                return false;
+            }
+        });
+
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener()
+        {
+            @Override
+            public void onInfoWindowClick(Marker marker)
+            {
+                Log.i(TAG, "InfoWindow was clicked");
+
+                FeralFriend friend = friends.get(mHashMap.get(marker));
+
+                //Call the feral friend activity and get user input
+                Intent intent = FriendActivity.newIntent(getApplicationContext(), friend);
+                startActivityForResult(intent, 2);
             }
         });
     }
@@ -164,12 +409,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onLocationChanged(Location location)
     {
-        LatLng curPosition = new LatLng(location.getLatitude(), location.getLongitude());
+        Log.i(TAG, "Location changed to: " + location.getLatitude() + ", " + location.getLongitude());
 
         mLocation = location;
-
-        //mMap.addMarker(new MarkerOptions().position(curPosition).title("Current position!"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(curPosition));
+        LatLng curPosition = new LatLng(location.getLatitude(), location.getLongitude());
 
         CameraPosition cameraPosition = new CameraPosition.Builder().target(curPosition).zoom(20).build();
         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
@@ -184,36 +427,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onProviderDisabled(String provider) {}
 
-    private void addMarkers(double maxDistance)
+    private void addMarkersWithinDistance(double maxDistance)
     {
         //Get user's marker from the database
         LookupItemAsyncTask task = new LookupItemAsyncTask();
 
         try
         {
-            ArrayList<Document> documents = task.execute().get();
+            friends = task.execute().get();
 
-            if(documents == null)
+            if(friends == null)
             {
+                friends = new ArrayList<FeralFriend>();
                 return;
             }
 
-            for(Document document : documents)
+            for(int i = 0; i < friends.size(); i++)
             {
-                double lat, lng;
-
-                try
-                {
-                    lat = Double.parseDouble(document.get("Lat").asPrimitive().getValue().toString());
-                    lng = Double.parseDouble(document.get("Lng").asPrimitive().getValue().toString());
-                }
-                catch(NullPointerException npe)
-                {
-                    Log.e(TAG, npe.getMessage());
-                    continue;
-                }
-
-                LatLng markerPosition = new LatLng(lat, lng);
+                LatLng markerPosition = new LatLng(friends.get(i).getLatitude(), friends.get(i).getLongitude());
                 LatLng curPosition = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
 
                 double distanceBetween = SphericalUtil.computeDistanceBetween(markerPosition, curPosition);
@@ -221,8 +452,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //Place markers that are within the maximum distance of the current position
                 if(distanceBetween <= maxDistance)
                 {
-                    Marker marker = mMap.addMarker(new MarkerOptions().position(markerPosition).title(document.get("Title").asString()));
-                    Log.i(TAG, "Added marker: " + marker.getId() + ", Title: " + marker.getTitle() + ", Distance between: " + distanceBetween + " meters");
+                    Marker marker = mMap.addMarker(new MarkerOptions().position(markerPosition));
+                    marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.cat_icon_sleep_3));
+
+                    mHashMap.put(marker, i);
+
+                    Log.i(TAG, "Added marker: " + friends.get(i).getID() + ", Title: " + friends.get(i).getTitle() + ", Distance between: " + distanceBetween + " meters");
                 }
             }
         }
@@ -236,36 +471,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private class CreateItemAsyncTask extends AsyncTask<Document, Void, Void>
+    private class CreateItemAsyncTask extends AsyncTask<Document, Void, Boolean>
     {
         @Override
-        protected Void doInBackground(Document... documents)
+        protected Boolean doInBackground(Document... documents)
         {
             DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
-            databaseAccess.create(documents[0]);
 
-            Log.i(TAG, "Insert document into table");
+            if(!databaseAccess.create(documents[0]))
+            {
+                Log.i(TAG, "AsyncTask: Failed to insert document into table");
+                return false;
+            }
 
-            return null;
+            Log.i(TAG, "Inserted document into table");
+            return true;
         }
     }
 
-    private class LookupItemAsyncTask extends AsyncTask<Void, Void, ArrayList<Document>>
+    private class LookupItemAsyncTask extends AsyncTask<Void, Void, ArrayList<FeralFriend>>
     {
         @Override
-        protected ArrayList<Document> doInBackground(Void... Voids)
+        protected ArrayList<FeralFriend> doInBackground(Void... Voids)
         {
             DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
-            ArrayList<Document> documents = databaseAccess.lookup();
+            ArrayList<FeralFriend> friends = databaseAccess.lookup();
 
-            if(documents.isEmpty())
+            if(friends.isEmpty())
             {
+                Log.i(TAG, "Database has no records");
                 return null;
             }
 
-            Log.i(TAG, "Retrieved documents from database.");
+            Log.i(TAG, "AsyncTask: Received FeralFriends ArrayList from database");
+            return friends;
+        }
+    }
 
-            return documents;
+    private class DeleteItemAsyncTask extends AsyncTask<Document, Void, Boolean>
+    {
+        @Override
+        protected Boolean doInBackground(Document... documents)
+        {
+            DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
+            if(!databaseAccess.delete(documents[0]))
+            {
+                Log.i(TAG, "AsyncTask: Failed to insert document into table");
+                return false;
+            }
+
+            Log.i(TAG, "Deleted document from table");
+            return true;
         }
     }
 }
