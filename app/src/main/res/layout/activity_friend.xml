@@ -80,6 +80,7 @@
 
         <EditText
             android:id="@+id/number_friends"
+            style="@style/Widget.AppCompat.EditText"
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:fontFamily="cursive"
