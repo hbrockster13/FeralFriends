@@ -10,6 +10,7 @@
     <string name="friend_contact_text">Choose contact</string>
     <string name="friend_report_text">Share Feral Friend</string>
     <string name="save_friend_text">SAVE friend</string>
+    <string name="cancel_friend_text">CANCEL</string>
     <string name="friend_report">%1s!
         The friend was discovered on %2s, %3s, and %4s
         </string>
