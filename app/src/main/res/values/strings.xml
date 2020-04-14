@@ -5,11 +5,13 @@
     <string name="friend_name_label">Name</string>
     <string name="friend_details_label">Please type details about the feral friends that you encounter. Perhaps tell a story about how you found them.</string>
     <string name="friend_fed_label">Fed</string>
-    <string name="date_picker_title">Date when our friend was first found</string>
+    <string name="date_picker_title">Date when our friend was last fed</string>
     <string name="contact_name">Contact Name</string>
     <string name="friend_contact_text">Choose contact</string>
     <string name="friend_report_text">Share Feral Friend</string>
     <string name="save_friend_text">SAVE friend</string>
+    <string name="cancel_friend_text">CANCEL</string>
+    <string name="edit_friend_text">EDIT</string>
     <string name="friend_report">%1s!
         The friend was discovered on %2s, %3s, and %4s
         </string>

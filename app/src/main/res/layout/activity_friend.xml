@@ -80,6 +80,7 @@
 
         <EditText
             android:id="@+id/number_friends"
+            style="@style/Widget.AppCompat.EditText"
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:fontFamily="cursive"
@@ -118,7 +119,7 @@
 
     <EditText
         android:id="@+id/friend_details"
-        style="?android:listSeparatorTextViewStyle"
+        style="@style/Widget.AppCompat.EditText"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:layout_margin="3dp"
@@ -150,12 +151,28 @@
         android:text="@string/friend_report_text"
         android:textSize="18sp"
         android:textStyle="bold" />
+
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="20dp"
         android:layout_margin="0dp"
-        android:layout_weight="4">
+        android:layout_weight="4"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:layout_weight="2"
+            android:background="#D5DDD7"
+            android:fadingEdge="horizontal|vertical"
+            android:fontFamily="casual"
+            android:text="@string/cancel_friend_text"
+            android:textSize="18sp"
+            android:textStyle="bold"
+
+            />
 
         <Button
             android:id="@+id/save_button"

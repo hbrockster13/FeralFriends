@@ -2,11 +2,22 @@
  * The purpose of this class is to have a model of instance data that we should keep for each object
  */
 package com.example.feralfriends.models;
+
+import android.icu.text.SimpleDateFormat;
+import android.util.Log;
+
+import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+import java.io.Serializable;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.UUID;
 
-public class FeralFriend
+public class FeralFriend implements Serializable
 {
+    /**
+     * User ID in Amazon AWS Cognito Pool
+     */
+    private String userID;
     /**
      * Unique Identifier for the feral friend
      */
@@ -35,11 +46,11 @@ public class FeralFriend
     /**
      * GPS longitude of colony
      */
-    private String mLongitude;
+    private double mLongitude;
     /**
      * GPS Latitude of colony
      */
-    private String mLatitude;
+    private double mLatitude;
 
     /**
      * Description details
@@ -53,22 +64,51 @@ public class FeralFriend
 
     public FeralFriend()
     {
-        this(UUID.randomUUID());
-        setFed(false);
+        setUserID(null);
+        setID(UUID.randomUUID());
         setDate(new Date());
-        setDetails("-- No Details at the moment --");
+        setFed(false);
+        setDetails("No description.");
         setFirstFriend("Some Crazy cat lady");
-        setLatitude("0");
-        setLongitude("0");
+        setLatitude(0.0);
+        setLongitude(0.0);
         setTitle("No Title");
         setTNRed(false);
+        setNumberOfFriends(1);
     }
 
-    public FeralFriend(UUID ID)
+    public FeralFriend(String userID, String mID, double mLatitude, double mLongitude, String title, String mDetails, String lastFed, boolean mTNRed, int mNumberOfFriend)
     {
-        mID = ID;
-        mDate = new Date();
+        this.userID = userID;
+        this.mID = UUID.fromString(mID);
+        this.mLatitude = mLatitude;
+        this.mLongitude = mLongitude;
+        this.title = title;
+        this.mDetails = mDetails;
 
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+
+        try
+        {
+            this.mDate = dateFormatter.parse(lastFed);
+        }
+        catch(ParseException pe)
+        {
+            Log.e("FeralFriend Model", pe.getMessage());
+        }
+
+        this.mTNRed = mTNRed;
+        this.mNumberOfFriend = mNumberOfFriend;
+    }
+
+    public String getUserID()
+    {
+        return userID;
+    }
+
+    public void setUserID(String userID)
+    {
+        this.userID = userID;
     }
 
     public UUID getID()
@@ -136,22 +176,22 @@ public class FeralFriend
         this.mTNRed = mTNRed;
     }
 
-    public String getLongitude()
+    public double getLongitude()
     {
         return mLongitude;
     }
 
-    public void setLongitude(String mLongitude)
+    public void setLongitude(double mLongitude)
     {
         this.mLongitude = mLongitude;
     }
 
-    public String getLatitude()
+    public double getLatitude()
     {
         return mLatitude;
     }
 
-    public void setLatitude(String mLatitude)
+    public void setLatitude(double mLatitude)
     {
         this.mLatitude = mLatitude;
     }
@@ -179,11 +219,52 @@ public class FeralFriend
     public String buildReport()
     {
         String report = "FRIEND REPORT:"
-                + "\nTitle: " + (this.getTitle().isEmpty()? "NO TITLE PROVIDED" : this.getTitle())
+                + "\nTitle: " + (this.getTitle().isEmpty() ? "NO TITLE PROVIDED" : this.getTitle())
                 + "\nLast Fed: " + this.getDate().toString()
                 + "\nLocation: " + this.getLongitude() + ", " + this.getLatitude()
-                + "\nBeen TNR:" + (this.isTNRed()? "YES" : "NO")
+                + "\nBeen TNR:" + (this.isTNRed() ? "YES" : "NO")
                 + "\nDetails: " + this.getDetails();
         return report;
+    }
+
+    public Document asDocument()
+    {
+        Document document = new Document();
+
+        if(userID != null)
+        {
+            document.put("UserId", getUserID());
+        }
+
+        document.put("MarkerId", getID().toString());
+        document.put("Lat", getLatitude());
+        document.put("Lng", getLongitude());
+        document.put("Title", getTitle());
+        document.put("Description", getDetails());
+        document.put("LastFed", getDate().toString());
+        document.put("TNR", isTNRed());
+        document.put("NumFriends", getNumberOfFriends());
+
+        return document;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if(this == o)
+        {
+            return true;
+        }
+
+        if(o == null || o.getClass() != this.getClass())
+        {
+            return false;
+        }
+
+        FeralFriend friend = (FeralFriend) o;
+
+        return(friend.mID.equals(this.mID) && Double.compare(friend.mLatitude, this.mLatitude) == 0 && Double.compare(friend.mLongitude, this.mLongitude) == 0 &&
+                friend.title.equals(this.title) && friend.mDetails.equals(this.mDetails) && friend.mDate.equals(this.mDate) && (friend.mTNRed && this.mTNRed) &&
+                friend.mNumberOfFriend == this.mNumberOfFriend);
     }
 }//End of FeralFriends

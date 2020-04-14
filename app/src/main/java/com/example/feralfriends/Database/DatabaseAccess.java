@@ -5,14 +5,19 @@ import android.util.Log;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.Table;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+import com.amazonaws.mobileconnectors.dynamodbv2.document.internal.Key;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
+import com.amazonaws.services.dynamodbv2.model.DeleteRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.example.feralfriends.models.FeralFriend;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 public class DatabaseAccess
@@ -49,32 +54,86 @@ public class DatabaseAccess
         return instance;
     }
 
-    public void create(Document document)
+    public boolean create(Document document)
     {
+        try
+        {
+            if(!document.get("UserId").asString().equals(credentialsProvider.getCachedIdentityId()))
+            {
+                Log.i(TAG, "Cannot modify other user's markers!");
+                return false;
+            }
+        }
+        catch(NullPointerException npe)
+        {
+            Log.e(TAG, npe.getMessage());
+        }
+
         document.put("UserId", credentialsProvider.getCachedIdentityId());
-        Log.i(TAG, document.get("UserId").toString());
+        Log.i(TAG, "Insert document into " + DYNAMODB_TABLE + ", UserId: " + credentialsProvider.getCachedIdentityId() + ", MarkerId: " + document.get("MarkerId").asString());
 
         table.putItem(document);
+
+        return true;
     }
 
-    public ArrayList<Document> lookup()
+    public ArrayList<FeralFriend> lookup()
     {
-        ArrayList<Document> documents = new ArrayList<Document>();
+        ArrayList<FeralFriend> friends = new ArrayList<FeralFriend>();
         ScanRequest scanRequest = new ScanRequest().withTableName(DYNAMODB_TABLE);
         ScanResult scanResult = client.scan(scanRequest);
 
+        Log.i(TAG, "Creating FeralFriend models from documents in database");
+
         for(Map<String, AttributeValue> item : scanResult.getItems())
         {
-            Document document = new Document();
-            document.put("UserId", item.get("UserId").getS());
-            document.put("MarkerId", item.get("MarkerId").getS());
-            document.put("Lat", item.get("Lat").getN());
-            document.put("Lng", item.get("Lng").getN());
-            document.put("Title", item.get("Title").getS());
+            FeralFriend friend = null;
 
-            documents.add(document);
+            try
+            {
+                friend = new FeralFriend(item.get("UserId").getS(), item.get("MarkerId").getS(), Double.parseDouble(item.get("Lat").getN()), Double.parseDouble(item.get("Lng").getN()),
+                    item.get("Title").getS(), item.get("Description").getS(), item.get("LastFed").getS(), item.get("TNR").getBOOL(),
+                    Integer.parseInt(item.get("NumFriends").getN()));
+            }
+            catch(NullPointerException npe)
+            {
+                Log.e(TAG, npe.getMessage());
+            }
+
+            if(friend != null)
+            {
+                friends.add(friend);
+            }
         }
 
-        return documents;
+        return friends;
+    }
+
+    public boolean delete(Document document)
+    {
+        try
+        {
+            if(!document.get("UserId").asString().equals(credentialsProvider.getCachedIdentityId()))
+            {
+                Log.i(TAG, "Cannot delete other user's markers!");
+                return false;
+            }
+        }
+        catch(NullPointerException npe)
+        {
+            Log.e(TAG, npe.getMessage());
+        }
+
+        Log.i(TAG, "Deleting marker ID: " + document.get("MarkerId").asString());
+
+        //Delete document from database
+        table.deleteItem(document.get("UserId").asPrimitive(), document.get("MarkerId").asPrimitive());
+
+        return true;
+    }
+
+    public String getUserID()
+    {
+        return credentialsProvider.getCachedIdentityId();
     }
 }
