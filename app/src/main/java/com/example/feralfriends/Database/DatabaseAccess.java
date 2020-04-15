@@ -60,16 +60,16 @@ public class DatabaseAccess
         {
             if(!document.get("UserId").asString().equals(credentialsProvider.getCachedIdentityId()))
             {
-                Log.i(TAG, "Cannot modify other user's markers!");
-                return false;
+                //Log.i(TAG, "Cannot modify other user's markers!");
+                //return false;
             }
         }
         catch(NullPointerException npe)
         {
+            document.put("UserId", credentialsProvider.getCachedIdentityId());
             Log.e(TAG, npe.getMessage());
         }
 
-        document.put("UserId", credentialsProvider.getCachedIdentityId());
         Log.i(TAG, "Insert document into " + DYNAMODB_TABLE + ", UserId: " + credentialsProvider.getCachedIdentityId() + ", MarkerId: " + document.get("MarkerId").asString());
 
         table.putItem(document);

@@ -312,7 +312,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //Add markers that aren't more than the maximum distance
                 //1600 meters in a mile
-                addMarkersWithinDistance(1600);
+                //addMarkersWithinDistance(1600);
+
+                //-1 to show all markers regardless of distance
+                addMarkersWithinDistance(-1);
             }
         });
 
@@ -415,7 +418,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng curPosition = new LatLng(location.getLatitude(), location.getLongitude());
 
         CameraPosition cameraPosition = new CameraPosition.Builder().target(curPosition).zoom(20).build();
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
     @Override
@@ -450,7 +453,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 double distanceBetween = SphericalUtil.computeDistanceBetween(markerPosition, curPosition);
 
                 //Place markers that are within the maximum distance of the current position
-                if(distanceBetween <= maxDistance)
+                if(distanceBetween <= maxDistance || maxDistance == -1)
                 {
                     Marker marker = mMap.addMarker(new MarkerOptions().position(markerPosition));
                     marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.cat_icon_sleep_3));
@@ -516,7 +519,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             DatabaseAccess databaseAccess = DatabaseAccess.getInstance(MapsActivity.this);
             if(!databaseAccess.delete(documents[0]))
             {
-                Log.i(TAG, "AsyncTask: Failed to insert document into table");
+                Log.i(TAG, "AsyncTask: Failed to delete document from table");
                 return false;
             }
 
