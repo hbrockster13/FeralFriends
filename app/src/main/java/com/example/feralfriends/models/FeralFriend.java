@@ -7,6 +7,7 @@ import android.icu.text.SimpleDateFormat;
 import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Date;
@@ -219,11 +220,14 @@ public class FeralFriend implements Serializable
     public String buildReport()
     {
         String report = "FRIEND REPORT:"
+                + "\nUserID: " + this.getUserID()
+                + "\nMarkerID: " + this.getID()
                 + "\nTitle: " + (this.getTitle().isEmpty() ? "NO TITLE PROVIDED" : this.getTitle())
                 + "\nLast Fed: " + this.getDate().toString()
-                + "\nLocation: " + this.getLongitude() + ", " + this.getLatitude()
-                + "\nBeen TNR:" + (this.isTNRed() ? "YES" : "NO")
-                + "\nDetails: " + this.getDetails();
+                + "\nLocation: " + this.getLatitude() + ", " + this.getLongitude()
+                + "\nBeen TNR: " + (this.isTNRed() ? "YES" : "NO")
+                + "\nDetails: " + this.getDetails()
+                + "\nNum Friends: " + this.getNumberOfFriends();
         return report;
     }
 
@@ -263,8 +267,13 @@ public class FeralFriend implements Serializable
 
         FeralFriend friend = (FeralFriend) o;
 
-        return(friend.mID.equals(this.mID) && Double.compare(friend.mLatitude, this.mLatitude) == 0 && Double.compare(friend.mLongitude, this.mLongitude) == 0 &&
-                friend.title.equals(this.title) && friend.mDetails.equals(this.mDetails) && friend.mDate.equals(this.mDate) && (friend.mTNRed && this.mTNRed) &&
-                friend.mNumberOfFriend == this.mNumberOfFriend);
+        if(friend.mID.equals(this.mID) && (Double.compare(friend.mLatitude, this.mLatitude) == 0) && (Double.compare(friend.mLongitude, this.mLongitude) == 0) &&
+            friend.title.equals(this.title) && friend.mDetails.equals(this.mDetails) && friend.mDate.equals(this.mDate) && (friend.mTNRed && this.mTNRed) &&
+            friend.mNumberOfFriend == this.mNumberOfFriend)
+        {
+            return true;
+        }
+
+        return false;
     }
 }//End of FeralFriends

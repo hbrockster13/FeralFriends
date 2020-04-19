@@ -2,22 +2,27 @@ package com.example.feralfriends.Database;
 
 import android.content.Context;
 import android.util.Log;
+
+import com.amazonaws.Request;
+import com.amazonaws.Response;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.Table;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
-import com.amazonaws.mobileconnectors.dynamodbv2.document.internal.Key;
+import com.amazonaws.mobileconnectors.lambdainvoker.LambdaInvokerFactory;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteRequest;
+import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.amazonaws.services.sns.AmazonSNSClient;
+import com.example.feralfriends.MapsActivity;
 import com.example.feralfriends.models.FeralFriend;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Map;
 
 public class DatabaseAccess
@@ -29,6 +34,8 @@ public class DatabaseAccess
     private Context context;
     private AmazonDynamoDBClient client;
     private CognitoCachingCredentialsProvider credentialsProvider;
+    private LambdaInvokerFactory factory;
+    private AmazonSNSClient snsClient;
 
     private static volatile DatabaseAccess instance;
 
@@ -38,10 +45,12 @@ public class DatabaseAccess
     {
         this.context = context;
 
-        credentialsProvider = new CognitoCachingCredentialsProvider(context, COGNITO_IDENTITY_POOL_ID, COGNITO_IDENTITY_POOL_REGION);
+        credentialsProvider = new CognitoCachingCredentialsProvider(this.context, COGNITO_IDENTITY_POOL_ID, COGNITO_IDENTITY_POOL_REGION);
         client = new AmazonDynamoDBClient(credentialsProvider);
-        client.setRegion(Region.getRegion(Regions.US_EAST_2));
+        client.setRegion(Region.getRegion(Regions.US_EAST_1));
         table = Table.loadTable(client, DYNAMODB_TABLE);
+        //factory = LambdaInvokerFactory.builder().region(Regions.US_EAST_1).credentialsProvider(credentialsProvider).context(this.context).build();
+        snsClient = new AmazonSNSClient(credentialsProvider);
     }
 
     public static synchronized DatabaseAccess getInstance(Context context)
@@ -135,5 +144,15 @@ public class DatabaseAccess
     public String getUserID()
     {
         return credentialsProvider.getCachedIdentityId();
+    }
+
+    public LambdaInvokerFactory getFactory()
+    {
+        return factory;
+    }
+
+    public AmazonSNSClient getSNSClient()
+    {
+        return snsClient;
     }
 }

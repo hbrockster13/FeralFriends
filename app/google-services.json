@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "270952548674",
+    "firebase_url": "https://feralfriends-8a2e2.firebaseio.com",
+    "project_id": "feralfriends-8a2e2",
+    "storage_bucket": "feralfriends-8a2e2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270952548674:android:f1376edde8bc565977a0db",
+        "android_client_info": {
+          "package_name": "com.example.feralfriends"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "270952548674-cmb0cu2rjmdh58ns10fklp8q26c3o6h2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLXYVOaDeMUe-nZwlxgqVEn1bd14cOwbk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "270952548674-cmb0cu2rjmdh58ns10fklp8q26c3o6h2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
