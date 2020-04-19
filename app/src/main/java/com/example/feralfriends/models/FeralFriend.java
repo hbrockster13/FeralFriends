@@ -37,10 +37,6 @@ public class FeralFriend implements Serializable
      */
     private boolean mFed;
     /**
-     * What user was the first friend or created the colony
-     */
-    private String mFirstFriend;
-    /**
      * Has the Friend been trapped, neutered and return
      */
     private boolean mTNRed;
@@ -70,7 +66,6 @@ public class FeralFriend implements Serializable
         setDate(new Date());
         setFed(false);
         setDetails("No description.");
-        setFirstFriend("Some Crazy cat lady");
         setLatitude(0.0);
         setLongitude(0.0);
         setTitle("No Title");
@@ -150,16 +145,6 @@ public class FeralFriend implements Serializable
     public void setFed(boolean mFed)
     {
         this.mFed= mFed;
-    }
-
-    public String getFirstFriend()
-    {
-        return mFirstFriend;
-    }
-
-    public void setFirstFriend(String mFirstFriend)
-    {
-        this.mFirstFriend = mFirstFriend;
     }
 
     public String getPhotoFileName()

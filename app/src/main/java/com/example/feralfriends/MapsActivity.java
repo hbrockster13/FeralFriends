@@ -2,6 +2,7 @@ package com.example.feralfriends;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ContentProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,6 +16,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -50,6 +52,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.maps.android.SphericalUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
@@ -137,11 +140,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         return;
                     }
                 }
-                catch(ExecutionException ee)
-                {
-                    Log.e(TAG, ee.getMessage());
-                }
-                catch(InterruptedException ie)
+                catch(InterruptedException | ExecutionException ie)
                 {
                     Log.e(TAG, ie.getMessage());
                 }
@@ -387,11 +386,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return;
             }
         }
-        catch(ExecutionException ee)
-        {
-            Log.e(TAG, ee.getMessage());
-        }
-        catch(InterruptedException ie)
+        catch(InterruptedException | ExecutionException ie)
         {
             Log.e(TAG, ie.getMessage());
         }
@@ -444,11 +439,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return;
             }
         }
-        catch(ExecutionException ee)
-        {
-            Log.e(TAG, ee.getMessage());
-        }
-        catch(InterruptedException ie)
+        catch(InterruptedException | ExecutionException ie)
         {
             Log.e(TAG, ie.getMessage());
         }
@@ -498,11 +489,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return;
             }
         }
-        catch(ExecutionException ee)
-        {
-            Log.e(TAG, ee.getMessage());
-        }
-        catch(InterruptedException ie)
+        catch(InterruptedException | ExecutionException ie)
         {
             Log.e(TAG, ie.getMessage());
         }
@@ -561,13 +548,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }
-        catch(InterruptedException ie)
+        catch(InterruptedException | ExecutionException ie)
         {
             Log.e(TAG, ie.getMessage());
-        }
-        catch(ExecutionException ee)
-        {
-            Log.e(TAG, ee.getMessage());
         }
     }
 
