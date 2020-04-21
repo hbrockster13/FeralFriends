@@ -1,9 +1,7 @@
 package com.example.feralfriends;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
 
 public class PictureUtils
 {

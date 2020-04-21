@@ -7,6 +7,7 @@ import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.Table;
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaInvokerFactory;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
@@ -17,6 +18,8 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.example.feralfriends.models.FeralFriend;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -91,6 +94,11 @@ public class DatabaseAccess
 
         Log.i(TAG, "Creating FeralFriend models from documents in database");
 
+        TransferUtility transferUtility = TransferUtility.builder()
+            .context(context)
+            .s3Client(fileClient)
+            .build();
+
         for(Map<String, AttributeValue> item : scanResult.getItems())
         {
             FeralFriend friend = null;
@@ -100,10 +108,23 @@ public class DatabaseAccess
                 friend = new FeralFriend(item.get("UserId").getS(), item.get("MarkerId").getS(), Double.parseDouble(item.get("Lat").getN()), Double.parseDouble(item.get("Lng").getN()),
                     item.get("Title").getS(), item.get("Description").getS(), item.get("LastFed").getS(), item.get("TNR").getBOOL(),
                     Integer.parseInt(item.get("NumFriends").getN()));
+
+                File localFile = File.createTempFile("IMG_" + friend.getID().toString(), ".jpg");
+
+                transferUtility.download("feralfriendsbucket", friend.getPhotoFileName(), localFile);
+                friend.setmImageFile(localFile);
             }
             catch(NullPointerException npe)
             {
                 Log.e(TAG, npe.getMessage());
+            }
+            catch(IllegalArgumentException iae)
+            {
+                Log.e(TAG, iae.getMessage());
+            }
+            catch(IOException ioe)
+            {
+                Log.e(TAG, ioe.getMessage());
             }
 
             if(friend != null)

@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
 
+import java.io.File;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Date;
@@ -58,6 +59,8 @@ public class FeralFriend implements Serializable
      * Number of animals at location
      */
     private int mNumberOfFriend;
+
+    private File mImageFile;
 
     public FeralFriend()
     {
@@ -200,6 +203,16 @@ public class FeralFriend implements Serializable
     public void setNumberOfFriends(int mNumberOfFriend)
     {
         this.mNumberOfFriend = mNumberOfFriend;
+    }
+
+    public File getmImageFile()
+    {
+        return mImageFile;
+    }
+
+    public void setmImageFile(File mImageFile)
+    {
+        this.mImageFile = mImageFile;
     }
 
     public String buildReport()

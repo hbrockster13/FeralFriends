@@ -2,11 +2,11 @@ package com.example.feralfriends;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ContentProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.icu.text.SimpleDateFormat;
 import android.location.Location;
 import android.location.LocationListener;
@@ -26,6 +26,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.amazonaws.mobileconnectors.dynamodbv2.document.datatype.Document;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointResult;
@@ -53,6 +54,7 @@ import com.google.firebase.iid.InstanceIdResult;
 import com.google.maps.android.SphericalUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
@@ -262,6 +264,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 View view = getLayoutInflater().inflate(R.layout.info_window, null);
 
                 //Setup the view from the FeralFriend model
+                ImageButton imageButton = view.findViewById(R.id.friend_photo_button);
+                Bitmap bitmap = PictureUtils.getScaledBitmap(friend.getmImageFile().getPath(), imageButton.getMaxWidth(), imageButton.getMaxHeight());
+
+                if(bitmap != null)
+                {
+                    imageButton.setBackground(null);
+                }
+
+                imageButton.setImageBitmap(bitmap);
+
                 EditText title = view.findViewById(R.id.friend_title);
                 title.setText(friend.getTitle());
 
@@ -666,6 +678,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Marker marker = mMap.addMarker(new MarkerOptions().position(location));
                 marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.cat_icon_sleep_3));
 
+                downloadImage(newFriend);
+
                 //Add new friend to data structures
                 friends.add(newFriend);
                 mHashMap.put(marker, newFriend);
@@ -683,6 +697,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                     FeralFriend temp = getFriend(marker);
+
+                    downloadImage(newFriend);
 
                     if(temp.getID().equals(newFriend.getID()) && temp.getUserID().equals(newFriend.getUserID()))
                     {
@@ -735,5 +751,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         return null;
+    }
+
+    private void downloadImage(FeralFriend friend)
+    {
+        //Download image
+        TransferUtility transferUtility = TransferUtility.builder()
+            .context(getApplicationContext())
+            .s3Client(DatabaseAccess.getInstance(MapsActivity.this).getS3Client())
+            .build();
+
+        try
+        {
+            File localFile = File.createTempFile("IMG_" + friend.getID().toString(), ".jpg");
+
+            transferUtility.download("feralfriendsbucket", friend.getPhotoFileName(), localFile);
+            friend.setmImageFile(localFile);
+        }
+        catch(IOException ioe)
+        {
+            Log.e(TAG, ioe.getMessage());
+        }
     }
 }
