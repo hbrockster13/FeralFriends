@@ -4,18 +4,20 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
 import android.icu.text.SimpleDateFormat;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -23,9 +25,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.example.feralfriends.Database.DatabaseAccess;
 import com.example.feralfriends.models.FeralFriend;
 
+import java.io.File;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class FriendActivity extends AppCompatActivity
 {
@@ -49,6 +62,7 @@ public class FriendActivity extends AppCompatActivity
     private TextView mLastFedTextView;
     private ToggleButton mTNRButton;
     private EditText mNumFriendsTextView;
+    private File mPhotoFile;
 
     public static Intent newIntent(Context packageContext, FeralFriend friend)
     {
@@ -67,6 +81,13 @@ public class FriendActivity extends AppCompatActivity
         {
             Log.i(TAG, "Creating a new FeralFriend");
             mFriend = new FeralFriend();
+
+            mPhotoFile = new File(getApplicationContext().getFilesDir(), mFriend.getPhotoFileName());
+            mFriend.setmImageFile(mPhotoFile);
+        }
+        else
+        {
+            mPhotoFile = mFriend.getmImageFile();
         }
 
         super.onCreate(savedInstanceState);
@@ -185,18 +206,13 @@ public class FriendActivity extends AppCompatActivity
                     mFriend.setTNRed(true);
                     Context context = getApplicationContext();
                     Log.i(TAG, "Our Friend is TNR'd");
-                    Toast.makeText(context, "Our Friend is TNR'd", Toast.LENGTH_SHORT);
                 }
                 else
                 {
                     mFriend.setTNRed(false);
                     Context context = getApplicationContext();
                     Log.i(TAG, "Our Friend is NOT TNR'd");
-                    Toast.makeText(context, "Our Friend is NOT TNR'd", Toast.LENGTH_SHORT);
                 }
-                Context context = getApplicationContext();
-                Toast.makeText(context, "Our Friend is NOT TNR'd", Toast.LENGTH_SHORT);
-
             }
         });
 
@@ -224,8 +240,24 @@ public class FriendActivity extends AppCompatActivity
                 Intent intent = new Intent();
                 intent.putExtra("friend_model", mFriend);
                 setResult(RESULT_DELETE, intent);
-
                 finish();
+
+                //Delete image from S3
+                DeleteImage task = new DeleteImage();
+
+                try
+                {
+                    if(!task.execute().get())
+                    {
+                        Log.i(TAG, "Failed to delete image from S3!");
+                    }
+                }
+                catch(InterruptedException | ExecutionException ie)
+                {
+                    Log.e(TAG, ie.getMessage());
+                }
+
+                Log.i(TAG, "Deleted image from S3");
             }
         });
         /*User can identify how many cats present textview*/
@@ -267,9 +299,132 @@ public class FriendActivity extends AppCompatActivity
                 Intent intent = new Intent();
                 intent.putExtra("friend_model", mFriend);
                 setResult(Activity.RESULT_OK, intent);
-
                 finish();
+
+                //Save image to S3
+                UploadImage task = new UploadImage();
+
+                try
+                {
+                    if(!task.execute().get())
+                    {
+                        Log.i(TAG, "Failed to upload image to S3!");
+                    }
+                }
+                catch(InterruptedException | ExecutionException ie)
+                {
+                    Log.e(TAG, ie.getMessage());
+                }
+
+                Log.i(TAG, "Saved image to S3");
             }
         });
+
+        final Intent captureImage = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        mImageButton = findViewById(R.id.friend_photo_button);
+        mImageButton.setEnabled(mPhotoFile != null && captureImage.resolveActivity(getPackageManager()) != null);
+
+        Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), mImageButton.getMaxWidth(), mImageButton.getMaxHeight());
+        mImageButton.setImageBitmap(bitmap);
+
+        mImageButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                try
+                {
+                    Uri uri = FileProvider.getUriForFile(FriendActivity.this, "com.example.feralfriends.fileprovider", mPhotoFile);
+
+                    captureImage.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+
+                    List<ResolveInfo> cameraActivities = getPackageManager().queryIntentActivities(captureImage, PackageManager.MATCH_DEFAULT_ONLY);
+
+                    for(ResolveInfo activity : cameraActivities)
+                    {
+                        grantUriPermission(activity.activityInfo.packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    }
+
+                    startActivityForResult(captureImage, REQUEST_PHOTO);
+                }
+                catch(IllegalArgumentException iae)
+                {
+                    Log.i(TAG, iae.getMessage());
+                }
+            }
+        });
+
+        ViewTreeObserver observer = mImageButton.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener()
+        {
+            @Override
+            public void onGlobalLayout()
+            {
+                updatePhotoView();
+            }
+        });
+    }
+
+    private void updatePhotoView()
+    {
+        if(mImageButton == null || !mPhotoFile.exists())
+        {
+            mImageButton.setImageDrawable(null);
+            return;
+        }
+
+        Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), mImageButton.getMaxWidth(), mImageButton.getMaxHeight());
+        mImageButton.setBackground(null);
+        mImageButton.setImageBitmap(bitmap);
+    }
+
+    private class UploadImage extends AsyncTask<Void, Void, Boolean>
+    {
+        @Override
+        protected Boolean doInBackground(Void... voids)
+        {
+            if(mPhotoFile == null || !mPhotoFile.exists())
+            {
+                return false;
+            }
+
+            AmazonS3Client client = DatabaseAccess.getInstance(FriendActivity.this).getS3Client();
+
+            TransferUtility transferUtility = TransferUtility.builder()
+                .context(getApplicationContext())
+                .s3Client(client)
+                .build();
+
+            transferUtility.upload("feralfriendsbucket", mFriend.getPhotoFileName(), mPhotoFile);
+
+            return true;
+        }
+    }
+
+    public class DeleteImage extends AsyncTask<Void, Void, Boolean>
+    {
+        @Override
+        protected Boolean doInBackground(Void... voids)
+        {
+            if(mPhotoFile == null || !mPhotoFile.exists())
+            {
+                return false;
+            }
+
+            AmazonS3Client client = DatabaseAccess.getInstance(FriendActivity.this).getS3Client();
+
+            try
+            {
+                DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest("feralfriendsbucket", mFriend.getPhotoFileName());
+                client.deleteObject(deleteObjectRequest);
+            }
+            catch(AmazonClientException ace)
+            {
+                Log.e(TAG, ace.getMessage());
+            }
+
+            return true;
+        }
     }
 }
