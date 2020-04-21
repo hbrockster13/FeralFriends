@@ -62,6 +62,40 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:17.0.0'
 }
 ```
+# File Structure
+```bash
+../app/src/ #Here is where all of our source code is
+|
+├── debug
+│   └── res
+│       └── values
+│           └── google_maps_api.xml
+├── main
+│   ├── AndroidManifest.xml
+│   ├── java
+│   │   └── com
+│   │       └── example
+│   │           └── feralfriends
+│   │               ├── Database
+│   │               │   └── DatabaseAccess.java
+│   │               ├── DatePickerFragment.java
+│   │               ├── FriendActivity.java
+│   │               ├── LoginActivity.java
+│   │               ├── MapsActivity.java
+│   │               └── models
+│   │                   └── FeralFriend.java
+│   └── res(XML/ UI Files)
+├── release
+│   └── res
+│       └── values
+│           └── google_maps_api.xml
+└── test
+    └── java
+        └── com
+            └── example
+                └── feralfriends
+                    └── ExampleUnitTest.java
+```
 # Contributors
   * Tyler Woods: Computer Science - [Contact](tmw42@students.uwf.edu)
   * Mark Bikakis: Cyber Security - [Contact](mjb91@students.uwf.edu)
