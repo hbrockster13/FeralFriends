@@ -700,7 +700,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     downloadImage(newFriend);
 
-                    if(temp.getID().equals(newFriend.getID()) && temp.getUserID().equals(newFriend.getUserID()))
+                    if(temp.getID().equals(newFriend.getID()))
                     {
                         //Update data structure
                         mHashMap.put(marker, newFriend);
